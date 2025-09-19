@@ -10,6 +10,9 @@ import { BadgeSystem, mockBadges } from "./BadgeSystem";
 import { Leaderboard, mockLeaderboardData } from "./Leaderboard";
 import { InteractiveQuiz, mockQuizQuestions } from "./InteractiveQuiz";
 import { ProfileManagement, mockUserProfile } from "./ProfileManagement";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { SearchFilters } from "@/components/SearchFilters";
 
 interface StudentDashboardProps {
   onBack: () => void;
@@ -20,6 +23,16 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userProfile, setUserProfile] = useState(mockUserProfile);
   const [totalPoints, setTotalPoints] = useState(1850);
+
+  const handleSearch = (query: string) => {
+    console.log("Search query:", query);
+    // Implement search functionality
+  };
+
+  const handleFilter = (filters: any) => {
+    console.log("Applied filters:", filters);
+    // Implement filter functionality
+  };
   
   const languages = [
     { code: 'english', label: 'English' },
@@ -104,6 +117,8 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
           </div>
           
           <div className="flex items-center gap-4">
+            <OfflineIndicator />
+            <NotificationCenter />
             <div className="text-right">
               <div className="text-2xl font-bold text-primary">{totalPoints.toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">Points</div>
@@ -148,6 +163,8 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-8">
+            <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
+            
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               <Card>

@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import { TeacherAnalytics, mockStudentProgress } from "./TeacherAnalytics";
 import { LessonUpload } from "./LessonUpload";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { SearchFilters } from "@/components/SearchFilters";
 
 interface TeacherDashboardProps {
   onBack: () => void;
@@ -24,6 +27,16 @@ interface TeacherDashboardProps {
 
 export const TeacherDashboard = ({ onBack }: TeacherDashboardProps) => {
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleSearch = (query: string) => {
+    console.log("Search query:", query);
+    // Implement search functionality for lessons/students
+  };
+
+  const handleFilter = (filters: any) => {
+    console.log("Applied filters:", filters);
+    // Implement filter functionality
+  };
 
   const handleLessonUpload = (lessonData: any) => {
     console.log('New lesson uploaded:', lessonData);
@@ -101,15 +114,19 @@ export const TeacherDashboard = ({ onBack }: TeacherDashboardProps) => {
             </div>
           </div>
           
-          <div className="flex gap-3">
-            <Button variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Content
-            </Button>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Lesson
-            </Button>
+          <div className="flex items-center gap-4">
+            <OfflineIndicator />
+            <NotificationCenter />
+            <div className="flex gap-3">
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Content
+              </Button>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Lesson
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -176,6 +193,8 @@ export const TeacherDashboard = ({ onBack }: TeacherDashboardProps) => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
+            <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
