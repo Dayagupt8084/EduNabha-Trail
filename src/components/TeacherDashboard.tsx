@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, 
   Upload, 
@@ -14,6 +15,8 @@ import {
   FileText,
   HelpCircle
 } from "lucide-react";
+import { TeacherAnalytics, mockStudentProgress } from "./TeacherAnalytics";
+import { LessonUpload } from "./LessonUpload";
 
 interface TeacherDashboardProps {
   onBack: () => void;
@@ -21,6 +24,17 @@ interface TeacherDashboardProps {
 
 export const TeacherDashboard = ({ onBack }: TeacherDashboardProps) => {
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleLessonUpload = (lessonData: any) => {
+    console.log('New lesson uploaded:', lessonData);
+  };
+
+  const classStats = {
+    totalStudents: 45,
+    avgCompletion: 78,
+    avgScore: 82,
+    strugglingStudents: 3
+  };
 
   const stats = {
     totalStudents: 45,
@@ -154,60 +168,75 @@ export const TeacherDashboard = ({ onBack }: TeacherDashboardProps) => {
           </Card>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Lessons */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Lessons</CardTitle>
-              <CardDescription>Your latest published content</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentLessons.map(lesson => (
-                <div key={lesson.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-secondary rounded-lg">
-                      {getTypeIcon(lesson.type)}
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{lesson.title}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {lesson.students} students • {lesson.avgCompletion}% completion
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={lesson.status === 'active' ? 'default' : 'secondary'}>
-                    {lesson.status}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="upload">Upload Lesson</TabsTrigger>
+          </TabsList>
 
-          {/* Student Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Progress</CardTitle>
-              <CardDescription>Track individual student performance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {studentProgress.map((student, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">{student.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {student.lessons} lessons • Last active: {student.lastActive}
-                      </p>
+          <TabsContent value="overview" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Lessons</CardTitle>
+                  <CardDescription>Your latest published content</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recentLessons.map(lesson => (
+                    <div key={lesson.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-secondary rounded-lg">
+                          {getTypeIcon(lesson.type)}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{lesson.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {lesson.students} students • {lesson.avgCompletion}% completion
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={lesson.status === 'active' ? 'default' : 'secondary'}>
+                        {lesson.status}
+                      </Badge>
                     </div>
-                    <span className="text-sm font-medium">{student.completion}%</span>
-                  </div>
-                  <Progress value={student.completion} className="h-2" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Student Progress</CardTitle>
+                  <CardDescription>Track individual student performance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {studentProgress.map((student, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{student.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {student.lessons} lessons • Last active: {student.lastActive}
+                          </p>
+                        </div>
+                        <span className="text-sm font-medium">{student.completion}%</span>
+                      </div>
+                      <Progress value={student.completion} className="h-2" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <TeacherAnalytics students={mockStudentProgress} classStats={classStats} />
+          </TabsContent>
+
+          <TabsContent value="upload">
+            <LessonUpload onLessonUploaded={handleLessonUpload} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

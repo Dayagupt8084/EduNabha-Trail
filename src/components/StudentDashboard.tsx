@@ -3,8 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Play, BookOpen, Trophy, Download, Globe, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Play, BookOpen, Trophy, Download, Globe, ArrowLeft, Award, Target, Users, Brain } from "lucide-react";
 import { LessonCard } from "./LessonCard";
+import { BadgeSystem, mockBadges } from "./BadgeSystem";
+import { Leaderboard, mockLeaderboardData } from "./Leaderboard";
+import { InteractiveQuiz, mockQuizQuestions } from "./InteractiveQuiz";
+import { ProfileManagement, mockUserProfile } from "./ProfileManagement";
 
 interface StudentDashboardProps {
   onBack: () => void;
@@ -12,6 +17,9 @@ interface StudentDashboardProps {
 
 export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
   const [language, setLanguage] = useState('english');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [userProfile, setUserProfile] = useState(mockUserProfile);
+  const [totalPoints, setTotalPoints] = useState(1850);
   
   const languages = [
     { code: 'english', label: 'English' },
@@ -56,7 +64,18 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
     completedLessons: 12,
     totalLessons: 25,
     averageScore: 85,
-    streak: 7
+    streak: 7,
+    badges: mockBadges.filter(b => b.earned).length,
+    rank: 2
+  };
+
+  const handleQuizComplete = (score: number, answers: number[]) => {
+    setTotalPoints(prev => prev + score);
+    // Add quiz completion logic here
+  };
+
+  const handleProfileUpdate = (updatedProfile: typeof mockUserProfile) => {
+    setUserProfile(updatedProfile);
   };
 
   return (
@@ -69,12 +88,26 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Welcome back, Priya!</h1>
+              <h1 className="text-3xl font-bold text-foreground">Welcome back, {userProfile.name}!</h1>
               <p className="text-muted-foreground">Continue your learning journey</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  Level {Math.floor(totalPoints / 100)}
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  #{stats.rank} in class
+                </Badge>
+              </div>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-2xl font-bold text-primary">{totalPoints.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">Points</div>
+            </div>
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
               <select 
@@ -90,87 +123,154 @@ export const StudentDashboard = ({ onBack }: StudentDashboardProps) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl font-bold">{stats.completedLessons}/{stats.totalLessons}</span>
-                <BookOpen className="w-5 h-5 text-primary" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="quiz" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              Quiz
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              Badges
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Leaderboard
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Progress</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl font-bold">{stats.completedLessons}/{stats.totalLessons}</span>
+                    <BookOpen className="w-5 h-5 text-primary" />
+                  </div>
+                  <Progress value={(stats.completedLessons / stats.totalLessons) * 100} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">Lessons completed</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-success">{stats.averageScore}%</span>
+                    <Trophy className="w-5 h-5 text-warning" />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Quiz performance</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Learning Streak</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-warning">{stats.streak}</span>
+                    <div className="text-warning">🔥</div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Days in a row</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Badges Earned</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-accent">{stats.badges}</span>
+                    <Award className="w-5 h-5 text-accent" />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Achievements unlocked</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Offline Ready</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="bg-accent">
+                      <Download className="w-3 h-3 mr-1" />
+                      Available
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Download for offline use</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Continue Learning Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Play className="w-5 h-5 text-primary" />
+                  Continue Learning
+                </CardTitle>
+                <CardDescription>Pick up where you left off</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LessonCard lesson={lessons[0]} />
+              </CardContent>
+            </Card>
+
+            {/* All Lessons */}
+            <div>
+              <h2 className="text-2xl font-bold mb-6">All Lessons</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {lessons.map(lesson => (
+                  <LessonCard key={lesson.id} lesson={lesson} />
+                ))}
               </div>
-              <Progress value={(stats.completedLessons / stats.totalLessons) * 100} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">Lessons completed</p>
-            </CardContent>
-          </Card>
+            </div>
+          </TabsContent>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-success">{stats.averageScore}%</span>
-                <Trophy className="w-5 h-5 text-warning" />
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Quiz performance</p>
-            </CardContent>
-          </Card>
+          <TabsContent value="quiz">
+            <InteractiveQuiz 
+              questions={mockQuizQuestions} 
+              timeLimit={300}
+              onComplete={handleQuizComplete}
+            />
+          </TabsContent>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Learning Streak</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-warning">{stats.streak}</span>
-                <div className="text-warning">🔥</div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Days in a row</p>
-            </CardContent>
-          </Card>
+          <TabsContent value="badges">
+            <BadgeSystem userBadges={mockBadges} totalPoints={totalPoints} />
+          </TabsContent>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Offline Ready</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary" className="bg-accent">
-                  <Download className="w-3 h-3 mr-1" />
-                  Available
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Download for offline use</p>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="leaderboard">
+            <Leaderboard 
+              entries={mockLeaderboardData} 
+              currentUserId="2" 
+              type="school" 
+            />
+          </TabsContent>
 
-        {/* Continue Learning Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="w-5 h-5 text-primary" />
-              Continue Learning
-            </CardTitle>
-            <CardDescription>Pick up where you left off</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LessonCard lesson={lessons[0]} />
-          </CardContent>
-        </Card>
-
-        {/* All Lessons */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">All Lessons</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lessons.map(lesson => (
-              <LessonCard key={lesson.id} lesson={lesson} />
-            ))}
-          </div>
-        </div>
+          <TabsContent value="profile">
+            <ProfileManagement 
+              profile={userProfile} 
+              onUpdateProfile={handleProfileUpdate}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
