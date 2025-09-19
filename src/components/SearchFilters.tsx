@@ -89,12 +89,12 @@ export const SearchFilters = ({ onSearch, onFilter }: SearchFiltersProps) => {
               {/* Subject Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Subject</label>
-                <Select value={filters.subject || ""} onValueChange={(value) => handleFilterChange("subject", value)}>
+                <Select value={filters.subject || "all-subjects"} onValueChange={(value) => handleFilterChange("subject", value === "all-subjects" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Subjects" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Subjects</SelectItem>
+                    <SelectItem value="all-subjects">All Subjects</SelectItem>
                     <SelectItem value="mathematics">Mathematics</SelectItem>
                     <SelectItem value="science">Science</SelectItem>
                     <SelectItem value="english">English</SelectItem>
@@ -108,12 +108,12 @@ export const SearchFilters = ({ onSearch, onFilter }: SearchFiltersProps) => {
               {/* Language Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Language</label>
-                <Select value={filters.language || ""} onValueChange={(value) => handleFilterChange("language", value)}>
+                <Select value={filters.language || "all-languages"} onValueChange={(value) => handleFilterChange("language", value === "all-languages" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Languages" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Languages</SelectItem>
+                    <SelectItem value="all-languages">All Languages</SelectItem>
                     <SelectItem value="english">English</SelectItem>
                     <SelectItem value="hindi">Hindi</SelectItem>
                     <SelectItem value="punjabi">Punjabi</SelectItem>
@@ -124,12 +124,12 @@ export const SearchFilters = ({ onSearch, onFilter }: SearchFiltersProps) => {
               {/* Class Level Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Class Level</label>
-                <Select value={filters.classLevel || ""} onValueChange={(value) => handleFilterChange("classLevel", value)}>
+                <Select value={filters.classLevel || "all-classes"} onValueChange={(value) => handleFilterChange("classLevel", value === "all-classes" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Classes</SelectItem>
+                    <SelectItem value="all-classes">All Classes</SelectItem>
                     <SelectItem value="6">Class 6</SelectItem>
                     <SelectItem value="7">Class 7</SelectItem>
                     <SelectItem value="8">Class 8</SelectItem>
@@ -142,12 +142,12 @@ export const SearchFilters = ({ onSearch, onFilter }: SearchFiltersProps) => {
               {/* Download Status Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Download Status</label>
-                <Select value={filters.downloadStatus || ""} onValueChange={(value) => handleFilterChange("downloadStatus", value)}>
+                <Select value={filters.downloadStatus || "all-download"} onValueChange={(value) => handleFilterChange("downloadStatus", value === "all-download" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Lessons" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Lessons</SelectItem>
+                    <SelectItem value="all-download">All Lessons</SelectItem>
                     <SelectItem value="downloaded">Downloaded for Offline</SelectItem>
                     <SelectItem value="not-downloaded">Not Downloaded</SelectItem>
                   </SelectContent>
@@ -157,12 +157,12 @@ export const SearchFilters = ({ onSearch, onFilter }: SearchFiltersProps) => {
               {/* Completion Status Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Completion Status</label>
-                <Select value={filters.completionStatus || ""} onValueChange={(value) => handleFilterChange("completionStatus", value)}>
+                <Select value={filters.completionStatus || "all-completion"} onValueChange={(value) => handleFilterChange("completionStatus", value === "all-completion" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Lessons" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Lessons</SelectItem>
+                    <SelectItem value="all-completion">All Lessons</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="in-progress">In Progress</SelectItem>
                     <SelectItem value="not-started">Not Started</SelectItem>
