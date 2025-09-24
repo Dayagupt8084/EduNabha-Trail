@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, Wifi, Globe, Smartphone, Users, School, Heart, TrendingUp } from "lucide-react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import {VideoPlayer} from "@/components/VideoPlayer";
+import Registery from "@/components/Registery";
 
 type UserRole = 'student' | 'teacher' | 'admin' | null;
 
@@ -248,8 +250,11 @@ const Index = () => {
           </p>
         </div>
       </div>
-      
-      {/* PWA Install Prompt */}
+      <VideoPlayer/>
+      <Registery/>
+
+
+       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
     </div>
   );

@@ -13,25 +13,25 @@ interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation?: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   points: number;
+  selectedAnswer?: number; // 🔹 new field to store user’s choice
 }
 
 interface QuizProps {
   questions: QuizQuestion[];
   timeLimit?: number; // in seconds
-  onComplete: (score: number, answers: number[]) => void;
+  onComplete: (score: number, answers: QuizQuestion[]) => void;
 }
 
 export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [timeLeft, setTimeLeft] = useState(timeLimit || 0);
   const [quizStarted, setQuizStarted] = useState(false);
   const [score, setScore] = useState(0);
 
+  // timer
   useEffect(() => {
     if (quizStarted && timeLimit && timeLeft > 0) {
       const timer = setInterval(() => {
@@ -53,53 +53,48 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
   };
 
   const handleAnswerSelect = (answerIndex: number) => {
-    setSelectedOption(answerIndex);
+    // 🔹 Store answer inside questions array
+    questions[currentQuestion].selectedAnswer = answerIndex;
   };
 
   const handleNextQuestion = () => {
-    const newAnswers = [...selectedAnswers];
-    newAnswers[currentQuestion] = selectedOption || -1;
-    setSelectedAnswers(newAnswers);
-    setSelectedOption(null);
-
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      handleQuizComplete(newAnswers);
+      handleQuizComplete();
     }
   };
 
-  const handleQuizComplete = (answers: number[] = selectedAnswers) => {
-    const finalAnswers = [...answers];
-    if (selectedOption !== null && currentQuestion < questions.length) {
-      finalAnswers[currentQuestion] = selectedOption;
-    }
-
-    const calculatedScore = finalAnswers.reduce((total, answer, index) => {
-      if (answer === questions[index]?.correctAnswer) {
-        return total + questions[index].points;
+  const handleQuizComplete = () => {
+    // 🔹 calculate score based on stored answers
+    const calculatedScore = questions.reduce((total, q) => {
+      if (q.selectedAnswer === q.correctAnswer) {
+        return total + q.points + 10; // reward points
       }
       return total;
     }, 0);
 
     setScore(calculatedScore);
-    setSelectedAnswers(finalAnswers);
     setShowResult(true);
-    onComplete(calculatedScore, finalAnswers);
+    onComplete(calculatedScore, questions);
   };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-success';
-      case 'medium': return 'text-warning';
-      case 'hard': return 'text-destructive';
-      default: return 'text-muted-foreground';
+      case "easy":
+        return "text-success";
+      case "medium":
+        return "text-warning";
+      case "hard":
+        return "text-destructive";
+      default:
+        return "text-muted-foreground";
     }
   };
 
@@ -120,21 +115,21 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
             </div>
             <div>
               <div className="text-2xl font-bold text-accent">
-                {questions.reduce((sum, q) => sum + q.points, 0)}
+                {questions.reduce((sum, q) => sum + q.points + 10, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Max Points</div>
+              <div className="text-sm text-muted-foreground">Max Points (+reward)</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-warning">
-                {timeLimit ? formatTime(timeLimit) : '∞'}
+                {timeLimit ? formatTime(timeLimit) : "∞"}
               </div>
               <div className="text-sm text-muted-foreground">Time Limit</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-success">
-                {questions.filter(q => q.difficulty === 'easy').length}
+                {questions.filter((q) => q.difficulty === "easy").length}
               </div>
-              <div className="text-sm text-muted-foreground">Easy</div>
+              <div className="text-sm text-muted-foreground">Easy Qs</div>
             </div>
           </div>
           <Button onClick={handleStartQuiz} className="w-full" size="lg">
@@ -146,10 +141,10 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
   }
 
   if (showResult) {
-    const correctAnswers = selectedAnswers.filter((answer, index) => 
-      answer === questions[index]?.correctAnswer
+    const correctAnswers = questions.filter(
+      (q) => q.selectedAnswer === q.correctAnswer
     ).length;
-    const percentage = Math.round((correctAnswers / questions.length) * 100);
+    const accuracy = Math.round((correctAnswers / questions.length) * 100);
 
     return (
       <Card className="max-w-2xl mx-auto">
@@ -161,18 +156,19 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <div className="text-4xl font-bold text-primary mb-2">{percentage}%</div>
+            <div className="text-4xl font-bold text-primary mb-2">{accuracy}%</div>
             <div className="text-lg text-muted-foreground">
-              {correctAnswers} out of {questions.length} correct
+              Accuracy ({correctAnswers}/{questions.length})
             </div>
             <div className="text-2xl font-bold text-accent mt-2">{score} points earned</div>
           </div>
 
-          <div className="space-y-3">
-            {questions.map((question, index) => (
+          {/* answers review */}
+          <div className="space-y-3 mt-4">
+            {questions.map((question) => (
               <div key={question.id} className="p-4 border rounded-lg">
                 <div className="flex items-start gap-3">
-                  {selectedAnswers[index] === question.correctAnswer ? (
+                  {question.selectedAnswer === question.correctAnswer ? (
                     <CheckCircle className="w-5 h-5 text-success mt-1 flex-shrink-0" />
                   ) : (
                     <XCircle className="w-5 h-5 text-destructive mt-1 flex-shrink-0" />
@@ -183,9 +179,10 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
                       <div className="text-success">
                         ✓ Correct: {question.options[question.correctAnswer]}
                       </div>
-                      {selectedAnswers[index] !== question.correctAnswer && (
+                      {question.selectedAnswer !== question.correctAnswer && (
                         <div className="text-destructive">
-                          ✗ Your answer: {question.options[selectedAnswers[index]] || 'Not answered'}
+                          ✗ Your answer:{" "}
+                          {question.options[question.selectedAnswer ?? -1] || "Not answered"}
                         </div>
                       )}
                     </div>
@@ -196,7 +193,7 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
                     )}
                   </div>
                   <Badge variant="outline" className={getDifficultyColor(question.difficulty)}>
-                    {question.points} pts
+                    {question.points + 10} pts
                   </Badge>
                 </div>
               </div>
@@ -219,13 +216,13 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
               Question {currentQuestion + 1} of {questions.length}
             </span>
             <Badge variant="outline" className={getDifficultyColor(currentQ.difficulty)}>
-              {currentQ.difficulty} • {currentQ.points} pts
+              {currentQ.difficulty} • {currentQ.points + 10} pts
             </Badge>
           </div>
           {timeLimit && (
             <div className="flex items-center gap-2 text-sm">
               <Clock className="w-4 h-4" />
-              <span className={timeLeft < 60 ? 'text-destructive font-bold' : ''}>
+              <span className={timeLeft < 60 ? "text-destructive font-bold" : ""}>
                 {formatTime(timeLeft)}
               </span>
             </div>
@@ -233,14 +230,20 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
         </div>
         <Progress value={progress} className="h-2" />
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         <h3 className="text-lg font-semibold leading-relaxed">{currentQ.question}</h3>
-        
-        <RadioGroup value={selectedOption?.toString()} onValueChange={(value) => handleAnswerSelect(parseInt(value))}>
+
+        <RadioGroup
+          value={currentQ.selectedAnswer?.toString(nul)}
+          onValueChange={(value) => handleAnswerSelect(parseInt(value))}
+        >
           <div className="space-y-3">
             {currentQ.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+              <div
+                key={index}
+                className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+              >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} />
                 <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
                   {option}
@@ -249,7 +252,7 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
             ))}
           </div>
         </RadioGroup>
-        
+
         <div className="flex justify-between">
           <Button
             variant="outline"
@@ -260,10 +263,10 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
           </Button>
           <Button
             onClick={handleNextQuestion}
-            disabled={selectedOption === null}
+            disabled={currentQ.selectedAnswer === undefined}
             className="min-w-[120px]"
           >
-            {currentQuestion === questions.length - 1 ? 'Finish Quiz' : 'Next'}
+            {currentQuestion === questions.length - 1 ? "Finish Quiz" : "Next"}
           </Button>
         </div>
       </CardContent>
@@ -271,41 +274,49 @@ export const InteractiveQuiz = ({ questions, timeLimit, onComplete }: QuizProps)
   );
 };
 
+// ---- Mock Data ----
 export const mockQuizQuestions: QuizQuestion[] = [
   {
-    id: '1',
-    question: 'What is the capital of Punjab?',
-    options: ['Amritsar', 'Chandigarh', 'Ludhiana', 'Patiala'],
+    id: "1",
+    question: "What is the capital of Punjab?",
+    options: ["Amritsar", "Chandigarh", "Ludhiana", "Patiala"],
     correctAnswer: 1,
-    explanation: 'Chandigarh serves as the capital of both Punjab and Haryana.',
-    difficulty: 'easy',
-    points: 10
+    explanation: "Chandigarh serves as the capital of both Punjab and Haryana.",
+    difficulty: "easy",
+    points: 10,
   },
   {
-    id: '2',
-    question: 'Which is the largest planet in our solar system?',
-    options: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
+    id: "2",
+    question: "Which is the largest planet in our solar system?",
+    options: ["Earth", "Mars", "Jupiter", "Saturn"],
     correctAnswer: 2,
-    explanation: 'Jupiter is the largest planet in our solar system, with a mass greater than all other planets combined.',
-    difficulty: 'medium',
-    points: 15
+    explanation:
+      "Jupiter is the largest planet in our solar system, with a mass greater than all other planets combined.",
+    difficulty: "medium",
+    points: 15,
   },
   {
-    id: '3',
-    question: 'What is 15 × 24?',
-    options: ['340', '360', '380', '400'],
+    id: "3",
+    question: "What is 15 × 24?",
+    options: ["340", "360", "380", "400"],
     correctAnswer: 1,
-    explanation: '15 × 24 = 15 × 20 + 15 × 4 = 300 + 60 = 360',
-    difficulty: 'medium',
-    points: 15
+    explanation: "15 × 24 = 15 × 20 + 15 × 4 = 300 + 60 = 360",
+    difficulty: "medium",
+    points: 15,
   },
   {
-    id: '4',
-    question: 'Who wrote the Indian National Anthem?',
-    options: ['Rabindranath Tagore', 'Bankim Chandra Chatterjee', 'Sarojini Naidu', 'Mahatma Gandhi'],
+    id: "4",
+    question: "Who wrote the Indian National Anthem?",
+    options: [
+      "Rabindranath Tagore",
+      "Bankim Chandra Chatterjee",
+      "Sarojini Naidu",
+      "Mahatma Gandhi",
+    ],
     correctAnswer: 0,
-    explanation: 'Rabindranath Tagore wrote "Jana Gana Mana", which became India\'s National Anthem.',
-    difficulty: 'hard',
-    points: 20
-  }
+    explanation:
+      'Rabindranath Tagore wrote "Jana Gana Mana", which became India\'s National Anthem.',
+    difficulty: "hard",
+    points: 20,
+  },
 ];
